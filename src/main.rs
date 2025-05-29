@@ -1,28 +1,23 @@
-use reqwest::blocking::Client;
-use std::collections::HashMap;
 use std::thread;
 
-
 fn main() {
-    let mut v = Vec::<std::thread::JoinHandle<()>>::new();
-    for i in 0..100{
-    let handle =  thread::spawn(move || {
-        let mut map = HashMap::new();
-         map.insert("grant_type", "password");
-    let client = Client::new();
+    let mut handles = vec![];
 
-    let res = client.post("https://httpbin.org/post")
-        .json(&map)
-        .send();
-           
+    for i in 0..100 {
+        let handle = thread::spawn(move || {
+            println!("Hello from thread {}", i);
+            let client = reqwest::blocking::Client::new();
+            let res = client
+                .post("http://httpbin.org/post")
+                .body("the exact body that is sent")
+                .send();
+            println!("Response from thread {}: {:?}", i, res);
+        });
 
-});
-    v.push(handle);
+        handles.push(handle);
+    }
 
-    
-  }
-  for handle in v {
+    for handle in handles {
         handle.join().unwrap();
     }
 }
-
